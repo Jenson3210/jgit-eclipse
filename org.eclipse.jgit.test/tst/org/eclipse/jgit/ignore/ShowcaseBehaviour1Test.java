@@ -40,4 +40,33 @@ public class ShowcaseBehaviour1Test {
         assertTrue(ignoreRule2.isMatch("/directory/nested/again", true, true)); // It matches the directory
         //                                                                                     ^^^^^
     }
+
+    @Test
+    public void fastIgnoreRuleForDirectory() {
+        FastIgnoreRule ignoreRule = new FastIgnoreRule("/directory/");
+        assertTrue(ignoreRule.isMatch("/directory/nested/", true, false));
+        assertTrue(ignoreRule.isMatch("/directory/nested.txt", false, false));
+        assertTrue(ignoreRule.isMatch("/directory/nested/test.txt", false, false));
+
+        //THIS IS RETURNING FALSE due to pathMatch being true
+        assertTrue(ignoreRule.isMatch("/directory/nested/", true, true));
+        assertTrue(ignoreRule.isMatch("/directory/nested.txt", false, true));
+        assertTrue(ignoreRule.isMatch("/directory/nested/test.txt", false, true));
+    }
+
+    @Test
+    public void theSolutionShouldSucceedOnThisTest() throws IOException {
+        IgnoreNode ignoreNode = new IgnoreNode();
+        StringBuilder gitignore = new StringBuilder()
+                .append("/directory/nested/").append("\n")
+                .append("/single/").append("\n");
+        ignoreNode.parse(new ByteArrayInputStream(gitignore.toString().getBytes()));
+
+        assertEquals(IgnoreNode.MatchResult.IGNORED, ignoreNode.isIgnored("/directory/nested/again/", true));
+        assertEquals(IgnoreNode.MatchResult.IGNORED, ignoreNode.isIgnored("/directory/nested/again.txt", false));
+        assertEquals(IgnoreNode.MatchResult.IGNORED, ignoreNode.isIgnored("/directory/nested/again/again.txt", false));
+        assertEquals(IgnoreNode.MatchResult.IGNORED, ignoreNode.isIgnored("/single/again/", true));
+        assertEquals(IgnoreNode.MatchResult.IGNORED, ignoreNode.isIgnored("/single/again.txt", false));
+        assertEquals(IgnoreNode.MatchResult.IGNORED, ignoreNode.isIgnored("/single/again/again.txt", false));
+    }
 }
